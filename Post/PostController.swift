@@ -51,11 +51,21 @@ class PostController {
     
     // MARK: - Request
     
-    func fetchPosts(completion: ((newPosts: [Post]) -> Void)? = nil) {
+    func fetchPosts(reset reset: Bool = true, completion: ((newPosts: [Post]) -> Void)? = nil) {
         
-        guard let requestURL = PostController.endpoint else { fatalError("Post Endpoint url failed") }
+        guard let requestURL = PostController.endpoint else {
+            fatalError("Post Endpoint url failed")
+        }
         
-        NetworkController.performRequest(requestURL, httpMethod: .get, urlParameters: nil) { (data, error) in
+        let queryEndInterval = reset ? NSDate().timeIntervalSince1970 : posts.last?.queryTimestamp ?? NSDate().timeIntervalSince1970
+        
+        let urlParameters = [
+            "orderBy": "\"timestamp\"",
+            "endAt": "\(queryEndInterval)",
+            "limitToLast": "15",
+            ]
+        
+        NetworkController.performRequest(requestURL, httpMethod: .get, urlParameters: urlParameters) { (data, error) in
             
             let responseDataString = NSString(data: data!, encoding: NSUTF8StringEncoding)
             
@@ -74,7 +84,11 @@ class PostController {
             
             dispatch_async(dispatch_get_main_queue(), {
                 
-                self.posts = sortedPosts
+                if reset {
+                    self.posts = sortedPosts
+                } else {
+                    self.posts.appendContentsOf(sortedPosts)
+                }
                 
                 if let completion = completion {
                     completion(newPosts: sortedPosts)

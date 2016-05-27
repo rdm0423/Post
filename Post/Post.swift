@@ -40,6 +40,11 @@ struct Post {
         return try? NSJSONSerialization.dataWithJSONObject(self.jsonValue, options: NSJSONWritingOptions.PrettyPrinted)
     }
     
+    var queryTimestamp: NSTimeInterval {
+        
+        return timestamp - 0.000001
+    }
+    
     init(username: String, text: String, identifier: NSUUID = NSUUID()) {
         
         self.username = username

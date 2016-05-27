@@ -33,11 +33,11 @@ class PostListTableViewController: UITableViewController {
         
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
-        postController.fetchPosts({ (newPosts) in
+        postController.fetchPosts(reset: true) { (newPosts) in
             sender.endRefreshing()
             
             UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-        })
+        }
     }
 
     // MARK: - Table view data source
@@ -56,6 +56,22 @@ class PostListTableViewController: UITableViewController {
         cell.detailTextLabel?.text = "\(indexPath.row) - \(post.username) - \(NSDate(timeIntervalSince1970: post.timestamp))"
 
         return cell
+    }
+    
+    // MARK: - Table view delegate
+    
+    override func tableView(tableView: UITableView, willDisplayCell cell: UITableViewCell, forRowAtIndexPath indexPath: NSIndexPath) {
+        
+        if indexPath.row+1 == postController.posts.count {
+            
+            postController.fetchPosts(reset: false, completion: { (newPosts) in
+                
+                if !newPosts.isEmpty {
+                    
+                    self.tableView.reloadData()
+                }
+            })
+        }
     }
 
     // MARK: ALERT CONTROLLERs - Add Post and Error
